@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  initials     String
+  role         UserRole      @default(SALES_REP)
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sessions     UserSession[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+model Account {
+  id            String        @id @default(cuid())
+  name          String
+  industry      String
+  website       String
+  phone         String
+  owner         String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  contacts      Contact[]
+  opportunities Opportunity[]
+
+  @@index([owner])
+  @@map("accounts")
+}
+
+model Contact {
+  id            String        @id @default(cuid())
+  firstName     String
+  lastName      String
+  accountId     String
+  title         String
+  department    String
+  email         String        @unique
+  phone         String
+  mobile        String
+  status        ContactStatus @default(ACTIVE)
+  owner         String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  account       Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  opportunities Opportunity[]
+
+  @@index([accountId])
+  @@index([owner])
+  @@map("contacts")
+}
+
+model Lead {
+  id        String     @id @default(cuid())
+  firstName String
+  lastName  String
+  company   String
+  title     String
+  email     String     @unique
+  phone     String
+  source    String
+  status    LeadStatus @default(NEW)
+  owner     String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([status])
+  @@index([owner])
+  @@map("leads")
+}
+
+model Opportunity {
+  id        String           @id @default(cuid())
+  name      String
+  accountId String
+  contactId String?
+  amount    Int
+  stage     OpportunityStage @default(PROSPECTING)
+  closeDate DateTime
+  owner     String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  account   Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  contact   Contact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([accountId])
+  @@index([contactId])
+  @@index([stage])
+  @@index([owner])
+  @@map("opportunities")
+}
+
+model Activity {
+  id          String         @id @default(cuid())
+  relatedType CrmObject
+  relatedId   String
+  type        ActivityType
+  subject     String
+  description String
+  dueDate     DateTime
+  status      ActivityStatus @default(OPEN)
+  createdBy   String
+  createdAt   DateTime       @default(now())
+
+  @@index([relatedType, relatedId])
+  @@index([status])
+  @@map("activities")
+}
+
+enum CrmObject {
+  LEAD        @map("lead")
+  ACCOUNT     @map("account")
+  CONTACT     @map("contact")
+  OPPORTUNITY @map("opportunity")
+
+  @@map("crm_object")
+}
+
+enum LeadStatus {
+  NEW       @map("New")
+  WORKING   @map("Working")
+  QUALIFIED @map("Qualified")
+  CONVERTED @map("Converted")
+  LOST      @map("Lost")
+
+  @@map("lead_status")
+}
+
+enum ContactStatus {
+  ACTIVE   @map("Active")
+  INACTIVE @map("Inactive")
+
+  @@map("contact_status")
+}
+
+enum OpportunityStage {
+  PROSPECTING   @map("Prospecting")
+  QUALIFICATION @map("Qualification")
+  PROPOSAL      @map("Proposal")
+  NEGOTIATION   @map("Negotiation")
+  CLOSED_WON    @map("Closed Won")
+  CLOSED_LOST   @map("Closed Lost")
+
+  @@map("opportunity_stage")
+}
+
+enum ActivityType {
+  CALL  @map("Call")
+  TASK  @map("Task")
+  NOTE  @map("Note")
+  EMAIL @map("Email")
+
+  @@map("activity_type")
+}
+
+enum ActivityStatus {
+  OPEN      @map("Open")
+  COMPLETED @map("Completed")
+
+  @@map("activity_status")
+}
+
+enum UserRole {
+  SYSTEM_ADMINISTRATOR @map("System Administrator")
+  SALES_MANAGER        @map("Sales Manager")
+  SALES_REP            @map("Sales Rep")
+  READ_ONLY            @map("Read Only")
+
+  @@map("user_role")
+}
