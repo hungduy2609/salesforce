@@ -22,7 +22,7 @@ import type {
 const prisma = new PrismaClient();
 const demoPassword = "demo-password";
 const demoUsers = [
-  { email: "duy@example.com", name: "Duy Nguyen", initials: "DU", role: DbUserRole.SALES_REP },
+  { email: "duy@example.com", name: "Duy Le", initials: "DU", role: DbUserRole.SALES_REP },
   { email: "manager@example.com", name: "Mai Tran", initials: "MT", role: DbUserRole.SALES_MANAGER },
   { email: "admin@example.com", name: "Admin User", initials: "AD", role: DbUserRole.SYSTEM_ADMINISTRATOR },
   { email: "readonly@example.com", name: "Read Only", initials: "RO", role: DbUserRole.READ_ONLY }

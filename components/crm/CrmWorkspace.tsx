@@ -21,9 +21,11 @@ export function CrmWorkspace(props: CrmWorkspaceProps) {
         />
       </ShadowBoundary>
       <CrmWorkspaceModals controller={controller} />
-      <div className="toast" data-testid="toast-message" role="status">
-        {controller.toast}
-      </div>
+      {controller.toast ? (
+        <div className="toast" data-testid="toast-message" role="status">
+          {controller.toast}
+        </div>
+      ) : null}
     </>
   );
 }

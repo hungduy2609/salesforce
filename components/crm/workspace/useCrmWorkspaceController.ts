@@ -1,36 +1,36 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { UserRole } from "@prisma/client";
 import { seedData } from "@/lib/seed";
 import type { Activity, ActivityType, CrmData, CrmObject, Lead } from "@/lib/types";
+import type { UserRole } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
-  applyLeadConversion,
-  buildLocalLeadConversion,
-  buildRecordChange,
-  collectionKey,
-  convertLeadInDatabase,
-  deleteFromDatabase,
-  findById,
-  firstRelatedId,
-  fullName,
-  nextId,
-  normalizeActivityType,
-  normalizeCrmObject,
-  saveActivityToDatabase,
-  saveRecordToDatabase,
-  today,
-  upsert
+    applyLeadConversion,
+    buildLocalLeadConversion,
+    buildRecordChange,
+    collectionKey,
+    convertLeadInDatabase,
+    deleteFromDatabase,
+    findById,
+    firstRelatedId,
+    fullName,
+    nextId,
+    normalizeActivityType,
+    normalizeCrmObject,
+    saveActivityToDatabase,
+    saveRecordToDatabase,
+    today,
+    upsert
 } from "./helpers";
 import type {
-  ActivityModalState,
-  ConvertLeadValues,
-  ConvertModalState,
-  CrmWorkspaceProps,
-  DeleteState,
-  ModalState,
-  RecordMode
+    ActivityModalState,
+    ConvertLeadValues,
+    ConvertModalState,
+    CrmWorkspaceProps,
+    DeleteState,
+    ModalState,
+    RecordMode
 } from "./types";
 import { objectMeta } from "./types";
 
@@ -49,7 +49,7 @@ export function useCrmWorkspaceController({
   const [deleteTarget, setDeleteTarget] = useState<DeleteState>(null);
   const [activityModal, setActivityModal] = useState<ActivityModalState>(null);
   const [convertModal, setConvertModal] = useState<ConvertModalState>(null);
-  const [toast, setToast] = useState<string>("CRM data ready");
+  const [toast, setToast] = useState<string>("");
 
   const actions = {
     openCreate: (object: CrmObject) => {

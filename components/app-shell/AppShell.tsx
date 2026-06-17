@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ShadowBoundary } from "@/components/shadow/ShadowBoundary";
+import logo from "@/image/logo.png";
 
 const navigation = [
   { href: "/app/home", label: "Home", testId: "nav-home" },
@@ -44,10 +46,10 @@ export function AppShell({ children, user }: { children: React.ReactNode; user: 
               ))}
             </button>
             <Link href="/app/home" className="brand-lockup" data-testid="link-brand-home">
-              <span className="brand-cloud">CRM</span>
+              <Image className="brand-logo" src={logo} alt="CRM Demo logo" priority />
               <span>
-                <strong>Lightning Desk</strong>
-                <small>Salesforce-inspired demo</small>
+                <strong>CRM Demo</strong>
+                <small>For demo purposes</small>
               </span>
             </Link>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,9 +43,9 @@ export default function LoginPage() {
           <span />
         </div>
         <p className="eyebrow">CRM Demo</p>
-        <h1>Sign in to the Lightning workspace</h1>
+        <h1>Sign in to the CRM workspace</h1>
         <p className="login-copy">
-          Real database-backed authentication with Salesforce-style role permissions for CRM access.
+          This website is for demo purposes only.
         </p>
         <label>
           Email

@@ -148,7 +148,7 @@ export function tableCells(object: CrmObject, record: RecordItem, data: CrmData)
 
 export function formFields(object: CrmObject, data: CrmData, values: Record<string, string> | undefined, ownerUsers: OwnerUser[], canTransferOwner: boolean): FieldDef[] {
   const accountOptions = data.accounts.map((account) => ({ value: account.id, label: account.name }));
-  const ownerField = selectField("owner", "Owner", ownerOptions(ownerUsers, values?.owner), true, false, !canTransferOwner, canTransferOwner ? "Salesforce-style record owner assignment." : "Only managers and admins can change Owner.");
+  const ownerField = selectField("owner", "Owner", ownerOptions(ownerUsers, values?.owner), true, false, !canTransferOwner, canTransferOwner ? "" : "Only managers and admins can change Owner.");
   const selectedAccountId = values?.accountId;
   const contacts = object === "opportunity" && selectedAccountId
     ? data.contacts.filter((contact) => contact.accountId === selectedAccountId)
