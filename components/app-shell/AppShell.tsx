@@ -48,8 +48,8 @@ export function AppShell({ children, user }: { children: React.ReactNode; user: 
             <Link href="/app/home" className="brand-lockup" data-testid="link-brand-home">
               <Image className="brand-logo" src={logo} alt="CRM Demo logo" priority />
               <span>
-                <strong>CRM Demo</strong>
-                <small>For demo purposes</small>
+                <strong style={{ fontSize: "1.5rem" }}>CRM</strong>
+                <small>FOR DEMO PURPOSES</small>
               </span>
             </Link>
           </div>

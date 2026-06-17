@@ -45,7 +45,7 @@ export default function LoginPage() {
         <p className="eyebrow">CRM Demo</p>
         <h1>Sign in to the CRM workspace</h1>
         <p className="login-copy">
-          This website is for demo purposes only.
+          THIS IS A DEMO STORE FOR TESTING AND TRAINING PURPOSES
         </p>
         <label>
           Email

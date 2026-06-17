@@ -76,20 +76,6 @@ export function ShadowBoundary({ children, name, level, className, dataTestId, s
 
     syncShadowStyles(shadowRoot);
     setMountNode(mount);
-
-    let frame = 0;
-    const scheduleSync = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => syncShadowStyles(shadowRoot));
-    };
-
-    const observer = new MutationObserver(scheduleSync);
-    observer.observe(document.head, { attributes: true, childList: true, subtree: true });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
   }, [name]);
 
   return (
