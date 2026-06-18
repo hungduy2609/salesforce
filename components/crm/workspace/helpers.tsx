@@ -1,5 +1,7 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import type { Locale } from "@/i18n/routing";
 import { opportunityStages } from "@/lib/seed";
 import type { OwnerUser } from "@/lib/crm-data";
 import type {
@@ -29,20 +31,22 @@ import type {
 import { objectMeta } from "./types";
 
 export function SummaryCard({ label, value, tone }: { label: string; value: string; tone: string }) {
+  const t = useTranslations("common");
   return (
     <article className={`summary-card ${tone}`} data-testid={`summary-${slug(label)}`}>
       <span>{label}</span>
       <strong>{value}</strong>
-      <small>Updated {today()}</small>
+      <small>{t("updated", { date: today() })}</small>
     </article>
   );
 }
 
 export function ObjectHeader({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
+  const t = useTranslations("common");
   return (
     <div className="object-header" data-testid={`header-${slug(title)}`}>
       <div>
-        <p className="eyebrow">Object list view</p>
+        <p className="eyebrow">{t("objectListView")}</p>
         <h1>{title}</h1>
         <p>{subtitle}</p>
       </div>
@@ -52,6 +56,7 @@ export function ObjectHeader({ title, subtitle, children }: { title: string; sub
 }
 
 export function ActivityPanel({ title, activities, data, actions }: { title: string; activities: Activity[]; data: CrmData; actions?: Actions }) {
+  const t = useTranslations("common");
   return (
     <section className="activity-panel" data-testid={`activity-${slug(title)}`}>
       <h2>{title}</h2>
@@ -63,44 +68,46 @@ export function ActivityPanel({ title, activities, data, actions }: { title: str
             <p>{activity.description}</p>
             <small>{activity.dueDate} by {activity.createdBy} / {activity.type} / {relatedLabel(activity, data)}</small>
           </div>
-          {actions ? <button className="icon-button" aria-label="Delete activity" onClick={() => actions.openDelete("activity", activity.id, activity.subject)}>×</button> : null}
+          {actions ? <button className="icon-button" aria-label={t("delete")} onClick={() => actions.openDelete("activity", activity.id, activity.subject)}>×</button> : null}
         </article>
-      )) : <p className="muted">No activities found.</p>}
+      )) : <p className="muted">{t("noActivities")}</p>}
     </section>
   );
 }
 
 export function EmptyState({ object, onCreate }: { object: string; onCreate?: () => void }) {
+  const t = useTranslations("crm");
   return (
     <div className="empty-state" data-testid="empty-state">
-      <strong>No {object.toLowerCase()} records found</strong>
-      <p>{onCreate ? "Try changing your filters or create a new record." : "Try changing your filters or ask a manager for edit access."}</p>
-      {onCreate ? <button className="button primary" onClick={onCreate}>New {object}</button> : null}
+      <strong>{t("empty.title", { object: object.toLowerCase() })}</strong>
+      <p>{onCreate ? t("empty.withCreate") : t("empty.withoutCreate")}</p>
+      {onCreate ? <button className="button primary" onClick={onCreate}>{t("list.newRecord", { object })}</button> : null}
     </div>
   );
 }
 
 export function Badge({ value }: { value: string }) {
-  return <span className={`badge ${slug(value)}`}>{value}</span>;
+  const locale = useLocale() as Locale;
+  return <span className={`badge ${slug(value)}`}>{translateValue(value, locale)}</span>;
 }
 
-export function tableHead(object: CrmObject, sort: SortState, onSort: (key: string) => void) {
+export function tableHead(object: CrmObject, sort: SortState, onSort: (key: string) => void, locale: Locale) {
   const columns = {
     account: [["name", "Account Name"], ["industry", "Industry"], ["website", "Website"], ["phone", "Phone"], ["owner", "Owner"], ["createdAt", "Created Date"]],
     contact: [["name", "Name"], ["account", "Account"], ["title", "Title"], ["email", "Email"], ["status", "Status"], ["owner", "Owner"]],
     lead: [["name", "Name"], ["company", "Company"], ["title", "Title"], ["email", "Email"], ["source", "Lead Source"], ["status", "Status"], ["owner", "Owner"]],
     opportunity: [["name", "Opportunity Name"], ["account", "Account"], ["stage", "Stage"], ["amount", "Amount"], ["closeDate", "Close Date"], ["owner", "Owner"]]
   }[object];
-  return <tr><th><input aria-label="Select all rows" type="checkbox" /></th>{columns.map(([key, label]) => <th key={key}><button onClick={() => onSort(key)}>{label}{sort.key === key ? (sort.direction === "asc" ? " ↑" : " ↓") : ""}</button></th>)}<th>Actions</th></tr>;
+  return <tr><th><input aria-label={translateValue("Select all rows", locale)} type="checkbox" /></th>{columns.map(([key, label]) => <th key={key}><button onClick={() => onSort(key)}>{translateValue(label, locale)}{sort.key === key ? (sort.direction === "asc" ? " ↑" : " ↓") : ""}</button></th>)}<th>{translateValue("Actions", locale)}</th></tr>;
 }
 
-export function tableRow(object: CrmObject, record: RecordItem, data: CrmData, actions: Actions, permissions: CrmPermissions) {
+export function tableRow(object: CrmObject, record: RecordItem, data: CrmData, actions: Actions, permissions: CrmPermissions, locale: Locale) {
   const meta = objectMeta[object];
   const href = `${meta.listPath}/${record.id}`;
   const cells = tableCells(object, record, data);
   return (
     <tr key={record.id} data-testid={`row-${meta.test}`}>
-      <td><input aria-label={`Select ${displayName(object, record, data)}`} type="checkbox" /></td>
+      <td><input aria-label={translateValue("Select {record}", locale).replace("{record}", displayName(object, record, data))} type="checkbox" /></td>
       {cells.map((cell, index) => (
         <td key={`${record.id}-${cell.label}`} data-testid={index === 0 ? `cell-${meta.test}-name` : undefined}>
           {index === 0 ? <Link href={href}>{cell.value}</Link> : cell.badge ? <Badge value={cell.value} /> : cell.value}
@@ -108,9 +115,9 @@ export function tableRow(object: CrmObject, record: RecordItem, data: CrmData, a
       ))}
       <td>
         <div className="row-actions" data-testid={`row-actions-${meta.test}`}>
-          <Link className="mini-link" href={href}>View</Link>
-          {permissions.canWrite ? <button onClick={() => actions.openEdit(object, record.id)}>Edit</button> : null}
-          {permissions.canDelete ? <button onClick={() => actions.openDelete(object, record.id, displayName(object, record, data))}>Delete</button> : null}
+          <Link className="mini-link" href={href}>{translateValue("View", locale)}</Link>
+          {permissions.canWrite ? <button onClick={() => actions.openEdit(object, record.id)}>{translateValue("Edit", locale)}</button> : null}
+          {permissions.canDelete ? <button onClick={() => actions.openDelete(object, record.id, displayName(object, record, data))}>{translateValue("Delete", locale)}</button> : null}
         </div>
       </td>
     </tr>
@@ -188,53 +195,53 @@ export function validateForm(object: CrmObject, values: Record<string, string>) 
   return errors;
 }
 
-export function detailGroups(object: CrmObject, record: RecordItem, data: CrmData) {
+export function detailGroups(object: CrmObject, record: RecordItem, data: CrmData, locale: Locale = "en") {
   if (object === "account") {
     const account = record as Account;
-    return [{ title: "Account Information", fields: [["Account Name", account.name], ["Industry", account.industry], ["Website", account.website], ["Phone", account.phone], ["Owner", account.owner]] }, { title: "System Information", fields: [["Created Date", account.createdAt], ["Last Modified Date", account.updatedAt]] }];
+    return [{ title: translateValue("Account Information", locale), fields: [[translateValue("Account Name", locale), account.name], [translateValue("Industry", locale), account.industry], [translateValue("Website", locale), account.website], [translateValue("Phone", locale), account.phone], [translateValue("Owner", locale), account.owner]] }, { title: translateValue("System Information", locale), fields: [[translateValue("Created Date", locale), account.createdAt], [translateValue("Last Modified Date", locale), account.updatedAt]] }];
   }
   if (object === "contact") {
     const contact = record as Contact;
-    return [{ title: "Personal Information", fields: [["First Name", contact.firstName], ["Last Name", contact.lastName], ["Title", contact.title], ["Department", contact.department]] }, { title: "Contact Information", fields: [["Email", contact.email], ["Phone", contact.phone], ["Mobile", contact.mobile], ["Status", contact.status]] }, { title: "Relationship", fields: [["Account", accountName(contact.accountId, data)], ["Owner", contact.owner], ["Created Date", contact.createdAt], ["Last Modified Date", contact.updatedAt]] }];
+    return [{ title: translateValue("Personal Information", locale), fields: [[translateValue("First Name", locale), contact.firstName], [translateValue("Last Name", locale), contact.lastName], [translateValue("Title", locale), contact.title], [translateValue("Department", locale), contact.department]] }, { title: translateValue("Contact Information", locale), fields: [[translateValue("Email", locale), contact.email], [translateValue("Phone", locale), contact.phone], [translateValue("Mobile", locale), contact.mobile], [translateValue("Status", locale), translateValue(contact.status, locale)]] }, { title: translateValue("Relationship", locale), fields: [[translateValue("Account", locale), accountName(contact.accountId, data)], [translateValue("Owner", locale), contact.owner], [translateValue("Created Date", locale), contact.createdAt], [translateValue("Last Modified Date", locale), contact.updatedAt]] }];
   }
   if (object === "lead") {
     const lead = record as Lead;
-    return [{ title: "Lead Information", fields: [["First Name", lead.firstName], ["Last Name", lead.lastName], ["Company", lead.company], ["Title", lead.title], ["Lead Source", lead.source], ["Status", lead.status]] }, { title: "Contact Information", fields: [["Email", lead.email], ["Phone", lead.phone], ["Owner", lead.owner], ["Created Date", lead.createdAt]] }];
+    return [{ title: translateValue("Lead Information", locale), fields: [[translateValue("First Name", locale), lead.firstName], [translateValue("Last Name", locale), lead.lastName], [translateValue("Company", locale), lead.company], [translateValue("Title", locale), lead.title], [translateValue("Lead Source", locale), lead.source], [translateValue("Status", locale), translateValue(lead.status, locale)]] }, { title: translateValue("Contact Information", locale), fields: [[translateValue("Email", locale), lead.email], [translateValue("Phone", locale), lead.phone], [translateValue("Owner", locale), lead.owner], [translateValue("Created Date", locale), lead.createdAt]] }];
   }
   const opportunity = record as Opportunity;
-  return [{ title: "Opportunity Information", fields: [["Name", opportunity.name], ["Account", accountName(opportunity.accountId, data)], ["Contact", opportunity.contactId ? contactName(opportunity.contactId, data) : "-"], ["Stage", opportunity.stage], ["Amount", currency(opportunity.amount)], ["Close Date", opportunity.closeDate], ["Owner", opportunity.owner]] }, { title: "System Information", fields: [["Created Date", opportunity.createdAt], ["Last Modified Date", opportunity.updatedAt]] }];
+  return [{ title: translateValue("Opportunity Information", locale), fields: [[translateValue("Name", locale), opportunity.name], [translateValue("Account", locale), accountName(opportunity.accountId, data)], [translateValue("Contact", locale), opportunity.contactId ? contactName(opportunity.contactId, data) : "-"], [translateValue("Stage", locale), translateValue(opportunity.stage, locale)], [translateValue("Amount", locale), currency(opportunity.amount)], [translateValue("Close Date", locale), opportunity.closeDate], [translateValue("Owner", locale), opportunity.owner]] }, { title: translateValue("System Information", locale), fields: [[translateValue("Created Date", locale), opportunity.createdAt], [translateValue("Last Modified Date", locale), opportunity.updatedAt]] }];
 }
 
-export function relatedSections(object: CrmObject, id: string, data: CrmData) {
+export function relatedSections(object: CrmObject, id: string, data: CrmData, locale: Locale = "en") {
   if (object === "account") return [
-    { title: "Contacts", items: data.contacts.filter((contact) => contact.accountId === id).map((contact) => ({ title: fullName(contact), meta: contact.title, href: `/app/contacts/${contact.id}` })) },
-    { title: "Opportunities", items: data.opportunities.filter((opportunity) => opportunity.accountId === id).map((opportunity) => ({ title: opportunity.name, meta: `${opportunity.stage} / ${currency(opportunity.amount)}`, href: `/app/opportunities/${opportunity.id}` })) },
-    { title: "Activities", items: data.activities.filter((activity) => activity.relatedType === "account" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: activity.type, href: "#" })) }
+    { title: translateValue("Contacts", locale), items: data.contacts.filter((contact) => contact.accountId === id).map((contact) => ({ title: fullName(contact), meta: contact.title, href: `/app/contacts/${contact.id}` })) },
+    { title: translateValue("Opportunities", locale), items: data.opportunities.filter((opportunity) => opportunity.accountId === id).map((opportunity) => ({ title: opportunity.name, meta: `${translateValue(opportunity.stage, locale)} / ${currency(opportunity.amount)}`, href: `/app/opportunities/${opportunity.id}` })) },
+    { title: translateValue("Activities", locale), items: data.activities.filter((activity) => activity.relatedType === "account" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: translateValue(activity.type, locale), href: "#" })) }
   ];
   if (object === "contact") {
     const contact = findById(data.contacts, id);
     return [
-      { title: "Account", items: contact ? [{ title: accountName(contact.accountId, data), meta: "Primary account", href: `/app/accounts/${contact.accountId}` }] : [] },
-      { title: "Opportunities", items: data.opportunities.filter((opportunity) => opportunity.contactId === id || opportunity.accountId === contact?.accountId).map((opportunity) => ({ title: opportunity.name, meta: `${opportunity.stage} / ${currency(opportunity.amount)}`, href: `/app/opportunities/${opportunity.id}` })) },
-      { title: "Activities", items: data.activities.filter((activity) => activity.relatedType === "contact" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: activity.type, href: "#" })) }
+      { title: translateValue("Account", locale), items: contact ? [{ title: accountName(contact.accountId, data), meta: translateValue("Primary account", locale), href: `/app/accounts/${contact.accountId}` }] : [] },
+      { title: translateValue("Opportunities", locale), items: data.opportunities.filter((opportunity) => opportunity.contactId === id || opportunity.accountId === contact?.accountId).map((opportunity) => ({ title: opportunity.name, meta: `${translateValue(opportunity.stage, locale)} / ${currency(opportunity.amount)}`, href: `/app/opportunities/${opportunity.id}` })) },
+      { title: translateValue("Activities", locale), items: data.activities.filter((activity) => activity.relatedType === "contact" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: translateValue(activity.type, locale), href: "#" })) }
     ];
   }
   if (object === "opportunity") {
     const opportunity = findById(data.opportunities, id);
     return [
-      { title: "Account", items: opportunity ? [{ title: accountName(opportunity.accountId, data), meta: "Deal account", href: `/app/accounts/${opportunity.accountId}` }] : [] },
-      { title: "Contact", items: opportunity?.contactId ? [{ title: contactName(opportunity.contactId, data), meta: "Primary contact", href: `/app/contacts/${opportunity.contactId}` }] : [] },
-      { title: "Activities", items: data.activities.filter((activity) => activity.relatedType === "opportunity" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: activity.type, href: "#" })) }
+      { title: translateValue("Account", locale), items: opportunity ? [{ title: accountName(opportunity.accountId, data), meta: translateValue("Deal account", locale), href: `/app/accounts/${opportunity.accountId}` }] : [] },
+      { title: translateValue("Contact", locale), items: opportunity?.contactId ? [{ title: contactName(opportunity.contactId, data), meta: translateValue("Primary contact", locale), href: `/app/contacts/${opportunity.contactId}` }] : [] },
+      { title: translateValue("Activities", locale), items: data.activities.filter((activity) => activity.relatedType === "opportunity" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: translateValue(activity.type, locale), href: "#" })) }
     ];
   }
-  return [{ title: "Activities", items: data.activities.filter((activity) => activity.relatedType === "lead" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: activity.type, href: "#" })) }];
+  return [{ title: translateValue("Activities", locale), items: data.activities.filter((activity) => activity.relatedType === "lead" && activity.relatedId === id).map((activity) => ({ title: activity.subject, meta: translateValue(activity.type, locale), href: "#" })) }];
 }
 
-export function keyFields(object: CrmObject, record: RecordItem, data: CrmData) {
-  if (object === "account") { const account = record as Account; return [`Industry: ${account.industry}`, `Phone: ${account.phone}`, `Owner: ${account.owner}`]; }
-  if (object === "contact") { const contact = record as Contact; return [`Account: ${accountName(contact.accountId, data)}`, `Title: ${contact.title}`, `Owner: ${contact.owner}`]; }
-  if (object === "lead") { const lead = record as Lead; return [`Company: ${lead.company}`, `Status: ${lead.status}`, `Owner: ${lead.owner}`]; }
-  const opportunity = record as Opportunity; return [`Account: ${accountName(opportunity.accountId, data)}`, `Stage: ${opportunity.stage}`, `Amount: ${currency(opportunity.amount)}`];
+export function keyFields(object: CrmObject, record: RecordItem, data: CrmData, locale: Locale = "en") {
+  if (object === "account") { const account = record as Account; return [`${translateValue("Industry", locale)}: ${account.industry}`, `${translateValue("Phone", locale)}: ${account.phone}`, `${translateValue("Owner", locale)}: ${account.owner}`]; }
+  if (object === "contact") { const contact = record as Contact; return [`${translateValue("Account", locale)}: ${accountName(contact.accountId, data)}`, `${translateValue("Title", locale)}: ${contact.title}`, `${translateValue("Owner", locale)}: ${contact.owner}`]; }
+  if (object === "lead") { const lead = record as Lead; return [`${translateValue("Company", locale)}: ${lead.company}`, `${translateValue("Status", locale)}: ${translateValue(lead.status, locale)}`, `${translateValue("Owner", locale)}: ${lead.owner}`]; }
+  const opportunity = record as Opportunity; return [`${translateValue("Account", locale)}: ${accountName(opportunity.accountId, data)}`, `${translateValue("Stage", locale)}: ${translateValue(opportunity.stage, locale)}`, `${translateValue("Amount", locale)}: ${currency(opportunity.amount)}`];
 }
 
 export function optionsFor(object: CrmObject, data: CrmData) {
@@ -504,7 +511,97 @@ export function currency(value: number) { return new Intl.NumberFormat("en-US", 
 export function today() { return new Date().toISOString().slice(0, 10); }
 export function slug(value: string) { return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 export function capitalize(value: string) { return `${value.charAt(0).toUpperCase()}${value.slice(1)}`; }
+export function translateValue(value: string, locale: Locale) { return locale === "ja" ? japaneseLabels[value] ?? value : value; }
 
 function field(name: string, label: string, type = "text", required = false, full = false): FieldDef { return { name, label, type, required, full, options: [] }; }
 function selectField(name: string, label: string, options: { value: string; label: string }[], required = false, full = false, disabled = false, help?: string): FieldDef { return { name, label, type: "select", required, full, disabled, help, options }; }
 function option(value: string) { return { value, label: value }; }
+
+const japaneseLabels: Record<string, string> = {
+  "Actions": "操作",
+  "View": "表示",
+  "Edit": "編集",
+  "Delete": "削除",
+  "Clone": "複製",
+  "Create": "作成",
+  "New": "新規",
+  "Required": "必須です",
+  "Enter a valid email": "有効なメールアドレスを入力してください",
+  "Enter a valid amount": "有効な金額を入力してください",
+  "Only managers and admins can change Owner.": "所有者の変更はマネージャーと管理者のみ可能です。",
+  "Select all rows": "すべての行を選択",
+  "Select {record}": "{record}を選択",
+  "Account": "取引先",
+  "Accounts": "取引先",
+  "Account Name": "取引先名",
+  "Account Information": "取引先情報",
+  "Activities": "活動",
+  "Activity": "活動",
+  "Amount": "金額",
+  "Assigned To": "担当者",
+  "Close Date": "完了予定日",
+  "Company": "会社",
+  "Contact": "取引先責任者",
+  "Contacts": "取引先責任者",
+  "Contact Information": "連絡先情報",
+  "Created Date": "作成日",
+  "Deal account": "商談の取引先",
+  "Department": "部署",
+  "Due Date": "期限日",
+  "Email": "メール",
+  "First Name": "名",
+  "Industry": "業種",
+  "Last Modified Date": "最終更新日",
+  "Last Name": "姓",
+  "Lead": "リード",
+  "Leads": "リード",
+  "Lead Information": "リード情報",
+  "Lead Source": "リードソース",
+  "Mobile": "携帯電話",
+  "Name": "名前",
+  "Opportunity": "商談",
+  "Opportunities": "商談",
+  "Opportunity Information": "商談情報",
+  "Opportunity Name": "商談名",
+  "Owner": "所有者",
+  "Personal Information": "個人情報",
+  "Phone": "電話",
+  "Primary account": "主取引先",
+  "Primary contact": "主取引先責任者",
+  "Related To": "関連先",
+  "Relationship": "関係",
+  "Stage": "ステージ",
+  "Status": "ステータス",
+  "Subject": "件名",
+  "System Information": "システム情報",
+  "Title": "役職",
+  "Type": "種別",
+  "Website": "Webサイト",
+  "Active": "有効",
+  "Inactive": "無効",
+  "Working": "対応中",
+  "Qualified": "見込みあり",
+  "Converted": "変換済み",
+  "Lost": "失注",
+  "Open": "未完了",
+  "Completed": "完了",
+  "Call": "通話",
+  "Task": "タスク",
+  "Note": "メモ",
+  "Prospecting": "見込み調査",
+  "Qualification": "評価",
+  "Needs Analysis": "ニーズ分析",
+  "Value Proposition": "価値提案",
+  "Proposal/Price Quote": "提案/見積",
+  "Negotiation/Review": "交渉/レビュー",
+  "Closed Won": "受注",
+  "Closed Lost": "失注",
+  "lead": "リード",
+  "leadPlural": "リード",
+  "account": "取引先",
+  "accountPlural": "取引先",
+  "contact": "取引先責任者",
+  "contactPlural": "取引先責任者",
+  "opportunity": "商談",
+  "opportunityPlural": "商談"
+};

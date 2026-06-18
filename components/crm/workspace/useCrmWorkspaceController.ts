@@ -3,6 +3,7 @@
 import { seedData } from "@/lib/seed";
 import type { Activity, ActivityType, CrmData, CrmObject, Lead } from "@/lib/types";
 import type { UserRole } from "@prisma/client";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -21,8 +22,10 @@ import {
     saveActivityToDatabase,
     saveRecordToDatabase,
     today,
+    translateValue,
     upsert
 } from "./helpers";
+import type { Locale } from "@/i18n/routing";
 import type {
     ActivityModalState,
     ConvertLeadValues,
@@ -43,6 +46,8 @@ export function useCrmWorkspaceController({
   currentUser = { id: "Duy", name: "Duy", role: "SYSTEM_ADMINISTRATOR" as UserRole, roleLabel: "System Administrator" },
   ownerUsers = [{ id: "Duy", name: "Duy", roleLabel: "Demo User" }]
 }: CrmWorkspaceProps) {
+  const locale = useLocale() as Locale;
+  const tToast = useTranslations("toast");
   const router = useRouter();
   const [data, setData] = useState<CrmData>(() => structuredClone(initialData));
   const [modal, setModal] = useState<ModalState>(null);
@@ -53,35 +58,35 @@ export function useCrmWorkspaceController({
 
   const actions = {
     openCreate: (object: CrmObject) => {
-      if (!permissions.canWrite) return setToast("Your role does not allow creating CRM records");
+      if (!permissions.canWrite) return setToast(tToast("cannotCreateRecords"));
       setModal({ object, mode: "create" });
     },
     openEdit: (object: CrmObject, id: string) => {
-      if (!permissions.canWrite) return setToast("Your role does not allow editing CRM records");
+      if (!permissions.canWrite) return setToast(tToast("cannotEditRecords"));
       setModal({ object, mode: "edit", id });
     },
     openClone: (object: CrmObject, id: string) => {
-      if (!permissions.canWrite) return setToast("Your role does not allow cloning CRM records");
+      if (!permissions.canWrite) return setToast(tToast("cannotCloneRecords"));
       setModal({ object, mode: "clone", id });
     },
     openDelete: (object: CrmObject | "activity", id: string, label: string) => {
-      if (!permissions.canDelete) return setToast("Your role does not allow deleting CRM data");
+      if (!permissions.canDelete) return setToast(tToast("cannotDeleteData"));
       setDeleteTarget({ object, id, label });
     },
     openActivity: (relatedType: CrmObject, relatedId: string, type: ActivityType) => {
-      if (!permissions.canWrite) return setToast("Your role does not allow creating activities");
+      if (!permissions.canWrite) return setToast(tToast("cannotCreateActivities"));
       setActivityModal({ mode: "create", relatedType, relatedId, type });
     },
     openCreateActivity: () => {
-      if (!permissions.canWrite) return setToast("Your role does not allow creating activities");
+      if (!permissions.canWrite) return setToast(tToast("cannotCreateActivities"));
       setActivityModal({ mode: "create" });
     },
     openEditActivity: (id: string) => {
-      if (!permissions.canWrite) return setToast("Your role does not allow editing activities");
+      if (!permissions.canWrite) return setToast(tToast("cannotEditActivities"));
       setActivityModal({ mode: "edit", id });
     },
     openConvertLead: (leadId: string) => {
-      if (!permissions.canWrite) return setToast("Your role does not allow converting leads");
+      if (!permissions.canWrite) return setToast(tToast("cannotConvertLeads"));
       setConvertModal({ leadId });
     }
   };
@@ -91,7 +96,7 @@ export function useCrmWorkspaceController({
     const { nextData, record } = buildRecordChange(data, object, mode, values, now, id, currentUser);
 
     setData(nextData);
-    setToast(`${objectMeta[object].singular} ${mode === "edit" ? "updated" : "created"}`);
+    setToast(tToast("recordSaved", { object: translateValue(object, locale), action: mode === "edit" ? tToast("updated") : tToast("created") }));
     setModal(null);
 
     if (databaseEnabled) {
@@ -129,7 +134,7 @@ export function useCrmWorkspaceController({
         )
       } as CrmData;
     });
-    setToast(`${target.label} deleted`);
+    setToast(tToast("deleted", { label: target.label }));
     setDeleteTarget(null);
 
     if (databaseEnabled) {
@@ -154,7 +159,7 @@ export function useCrmWorkspaceController({
       createdAt: existing?.createdAt ?? today()
     };
     setData((current) => ({ ...current, activities: upsert(current.activities, activity, activityModal.mode === "edit") }));
-    setToast(`Activity ${activityModal.mode === "edit" ? "updated" : "added"}`);
+    setToast(tToast("activitySaved", { action: activityModal.mode === "edit" ? tToast("updated") : tToast("added") }));
     setActivityModal(null);
 
     if (databaseEnabled) {
@@ -173,14 +178,14 @@ export function useCrmWorkspaceController({
       if (!result) return;
 
       setData((current) => applyLeadConversion(current, result));
-      setToast(`${fullName(result.contact)} converted from lead`);
+      setToast(tToast("converted", { name: fullName(result.contact) }));
       router.refresh();
       return;
     }
 
     const result = buildLocalLeadConversion(data, lead, values);
     setData((current) => applyLeadConversion(current, result));
-    setToast(`${fullName(result.contact)} converted from lead`);
+    setToast(tToast("converted", { name: fullName(result.contact) }));
   }
 
   return {

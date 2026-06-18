@@ -1,0 +1,178 @@
+{
+  "brand": {
+    "tagline": "デモ用"
+  },
+  "header": {
+    "search": "検索",
+    "searchPlaceholder": "リード、取引先、取引先責任者を検索...",
+    "help": "ヘルプ",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "appLauncher": "アプリランチャーを開く",
+    "actions": "ヘッダー操作"
+  },
+  "home": {
+    "eyebrow": "ホームダッシュボード",
+    "title": "高速CRMデモ向けの収益ワークスペース。",
+    "description": "Lightning風のシードデータ、安定したセレクター、モーダルCRUD、タイムライン、関連レコード、カンバンボードを備えています。",
+    "newLead": "新規リード",
+    "newContact": "新規取引先責任者",
+    "newOpportunity": "新規商談",
+    "totalLeads": "リード合計",
+    "accounts": "取引先",
+    "openDeals": "進行中の商談",
+    "revenuePipeline": "売上パイプライン",
+    "recentActivities": "最近の活動",
+    "upcomingTasks": "今後のタスク"
+  },
+  "language": {
+    "label": "言語",
+    "en": "English",
+    "ja": "日本語"
+  },
+  "login": {
+    "eyebrow": "CRMデモ",
+    "title": "CRMワークスペースにサインイン",
+    "copy": "これはテストおよびトレーニング用のデモストアです",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "error": "サインインできません",
+    "submit": "ログイン",
+    "submitting": "ログイン中...",
+    "hint": "シードユーザー: duy@example.com, manager@example.com, admin@example.com, readonly@example.com。パスワード: demo-password。"
+  },
+  "nav": {
+    "home": "ホーム",
+    "leads": "リード",
+    "accounts": "取引先",
+    "contacts": "取引先責任者",
+    "opportunities": "商談",
+    "kanban": "カンバン",
+    "activities": "活動",
+    "reports": "レポート"
+  },
+  "common": {
+    "objectListView": "オブジェクト一覧ビュー",
+    "listView": "リストビュー",
+    "searchThisList": "このリストを検索",
+    "filter": "フィルター",
+    "all": "すべて",
+    "refresh": "更新",
+    "pageOf": "{page} / {pageCount} ページ",
+    "previous": "前へ",
+    "next": "次へ",
+    "actions": "操作",
+    "view": "表示",
+    "edit": "編集",
+    "delete": "削除",
+    "clone": "複製",
+    "details": "詳細",
+    "activity": "活動",
+    "related": "関連",
+    "backTo": "{object}に戻る",
+    "notFoundTitle": "{object}が見つかりません",
+    "notFoundSubtitle": "要求されたシードレコードは存在しません。",
+    "noRelatedRecords": "関連レコードが見つかりません。",
+    "noActivities": "活動が見つかりません。",
+    "noDescription": "説明なし",
+    "selectAllRows": "すべての行を選択",
+    "selectAllActivities": "すべての活動を選択",
+    "selectRecord": "{record}を選択",
+    "updated": "更新日 {date}"
+    ,"cancel": "キャンセル",
+    "save": "保存",
+    "closeModal": "モーダルを閉じる",
+    "required": "必須です",
+    "validAmount": "有効な金額を入力してください"
+  },
+  "modals": {
+    "confirmDelete": "削除の確認",
+    "deleteTitle": "{label}を削除しますか？",
+    "deleteBody": "選択したレコードをローカルのシードワークスペースから削除します。",
+    "saveActivity": "活動を保存",
+    "editActivity": "活動を編集",
+    "newActivity": "新規活動",
+    "relatedObject": "関連オブジェクト",
+    "relatedRecord": "関連レコード",
+    "description": "説明",
+    "reassignHelp": "活動の再割り当てはマネージャーと管理者のみ可能です。",
+    "createNewAccount": "新しい取引先を作成",
+    "useExistingAccount": "既存の取引先を使用",
+    "existingAccount": "既存の取引先",
+    "createOpportunity": "商談を作成",
+    "conversionBody": "変換により取引先責任者が作成され、取引先を使用または作成し、必要に応じて商談を作成して、リードのステータスを変換済みに設定します。"
+  },
+  "crm": {
+    "objects": {
+      "lead": "リード",
+      "leadPlural": "リード",
+      "account": "取引先",
+      "accountPlural": "取引先",
+      "contact": "取引先責任者",
+      "contactPlural": "取引先責任者",
+      "opportunity": "商談",
+      "opportunityPlural": "商談",
+      "activity": "活動",
+      "activityPlural": "活動"
+    },
+    "list": {
+      "subtitle": "すべての{object}: {count}件のレコード",
+      "newRecord": "新規{object}",
+      "allObjects": "すべての{object}",
+      "myObjects": "自分の{object}",
+      "recentlyViewed": "最近表示した項目",
+      "searchPlaceholder": "{object}を検索..."
+    },
+    "empty": {
+      "title": "{object}レコードが見つかりません",
+      "withCreate": "フィルターを変更するか、新しいレコードを作成してください。",
+      "withoutCreate": "フィルターを変更するか、編集権限についてマネージャーに確認してください。"
+    },
+    "actions": {
+      "convertLead": "リードを変換",
+      "newTask": "新規タスク",
+      "logCall": "通話を記録",
+      "addNote": "メモを追加",
+      "viewRelated": "関連を表示"
+    },
+    "tabs": {
+      "upcoming": "今後の予定",
+      "pastActivity": "過去の活動"
+    }
+  },
+  "activities": {
+    "title": "活動",
+    "subtitle": "CRMレコード全体のタイムライン項目 {count}件",
+    "newActivity": "新規活動",
+    "allActivities": "すべての活動",
+    "myActivities": "自分の活動",
+    "openActivities": "未完了の活動",
+    "searchPlaceholder": "活動を検索..."
+  },
+  "reports": {
+    "title": "レポート",
+    "subtitle": "パイプラインと作業量のデモ集計レポート。",
+    "openKanban": "カンバンを開く",
+    "pipelineByStage": "ステージ別パイプライン"
+  },
+  "kanban": {
+    "title": "商談カンバン",
+    "subtitle": "ステージ別に商談をグループ化し、パイプライン合計を表示します。"
+  },
+  "toast": {
+    "cannotCreateRecords": "このロールではCRMレコードを作成できません",
+    "cannotEditRecords": "このロールではCRMレコードを編集できません",
+    "cannotCloneRecords": "このロールではCRMレコードを複製できません",
+    "cannotDeleteData": "このロールではCRMデータを削除できません",
+    "cannotCreateActivities": "このロールでは活動を作成できません",
+    "cannotEditActivities": "このロールでは活動を編集できません",
+    "cannotConvertLeads": "このロールではリードを変換できません",
+    "recordSaved": "{object}を{action}しました",
+    "created": "作成",
+    "updated": "更新",
+    "deleted": "{label}を削除しました",
+    "activitySaved": "活動を{action}しました",
+    "added": "追加",
+    "converted": "{name}をリードから変換しました"
+  }
+}

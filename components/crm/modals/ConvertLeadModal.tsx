@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/routing";
 import type { CrmData } from "@/lib/types";
-import { findById, fullName, today } from "../workspace/helpers";
+import { findById, fullName, today, translateValue } from "../workspace/helpers";
 import type { ConvertLeadValues } from "../workspace/types";
 
 export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: CrmData; leadId: string; onClose: () => void; onConvert: (values: ConvertLeadValues) => void }) {
+  const locale = useLocale() as Locale;
+  const tCommon = useTranslations("common");
+  const tCrm = useTranslations("crm");
+  const tModal = useTranslations("modals");
   const lead = findById(data.leads, leadId);
   const [values, setValues] = useState<ConvertLeadValues>(() => ({
     leadId,
@@ -29,11 +35,11 @@ export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: C
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
 
-    if (values.accountMode === "new" && !values.accountName.trim()) nextErrors.accountName = "Required";
-    if (values.accountMode === "existing" && !values.accountId) nextErrors.accountId = "Required";
-    if (values.createOpportunity && !values.opportunityName.trim()) nextErrors.opportunityName = "Required";
-    if (values.createOpportunity && Number.isNaN(Number(values.amount))) nextErrors.amount = "Enter a valid amount";
-    if (values.createOpportunity && !values.closeDate) nextErrors.closeDate = "Required";
+    if (values.accountMode === "new" && !values.accountName.trim()) nextErrors.accountName = tCommon("required");
+    if (values.accountMode === "existing" && !values.accountId) nextErrors.accountId = tCommon("required");
+    if (values.createOpportunity && !values.opportunityName.trim()) nextErrors.opportunityName = tCommon("required");
+    if (values.createOpportunity && Number.isNaN(Number(values.amount))) nextErrors.amount = tCommon("validAmount");
+    if (values.createOpportunity && !values.closeDate) nextErrors.closeDate = tCommon("required");
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length === 0) onConvert(values);
@@ -44,29 +50,29 @@ export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: C
       <form className="modal" data-testid="modal-convert-lead" onSubmit={submit}>
         <div className="modal-header">
           <div>
-            <p className="eyebrow">Convert Lead</p>
+            <p className="eyebrow">{tCrm("actions.convertLead")}</p>
             <h2>{fullName(lead)}</h2>
           </div>
-          <button type="button" className="icon-button" aria-label="Close modal" onClick={onClose}>×</button>
+          <button type="button" className="icon-button" aria-label={tCommon("closeModal")} onClick={onClose}>×</button>
         </div>
 
         <div className="form-grid">
           <label>
-            Account
+            {tCrm("objects.account")}
             <select data-testid="select-convert-account-mode" value={values.accountMode} onChange={(event) => change("accountMode", event.target.value as ConvertLeadValues["accountMode"])}>
-              <option value="new">Create new account</option>
-              <option value="existing">Use existing account</option>
+              <option value="new">{tModal("createNewAccount")}</option>
+              <option value="existing">{tModal("useExistingAccount")}</option>
             </select>
           </label>
           {values.accountMode === "new" ? (
             <label>
-              Account Name *
+              {tCrm("objects.account")} *
               <input data-testid="input-convert-account-name" value={values.accountName} onChange={(event) => change("accountName", event.target.value)} />
               {errors.accountName ? <small className="field-error">{errors.accountName}</small> : null}
             </label>
           ) : (
             <label>
-              Existing Account *
+              {tModal("existingAccount")} *
               <select data-testid="select-convert-account-id" value={values.accountId} onChange={(event) => change("accountId", event.target.value)}>
                 {data.accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
               </select>
@@ -75,22 +81,22 @@ export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: C
           )}
           <label className="full checkbox-field">
             <input type="checkbox" data-testid="checkbox-convert-opportunity" checked={values.createOpportunity} onChange={(event) => change("createOpportunity", event.target.checked)} />
-            Create opportunity
+            {tModal("createOpportunity")}
           </label>
           {values.createOpportunity ? (
             <>
               <label className="full">
-                Opportunity Name *
+                {tCrm("objects.opportunity")} *
                 <input data-testid="input-convert-opportunity-name" value={values.opportunityName} onChange={(event) => change("opportunityName", event.target.value)} />
                 {errors.opportunityName ? <small className="field-error">{errors.opportunityName}</small> : null}
               </label>
               <label>
-                Amount
+                {translateValue("Amount", locale)}
                 <input data-testid="input-convert-amount" type="number" value={values.amount} onChange={(event) => change("amount", event.target.value)} />
                 {errors.amount ? <small className="field-error">{errors.amount}</small> : null}
               </label>
               <label>
-                Close Date *
+                {translateValue("Close Date", locale)} *
                 <input data-testid="input-convert-close-date" type="date" value={values.closeDate} onChange={(event) => change("closeDate", event.target.value)} />
                 {errors.closeDate ? <small className="field-error">{errors.closeDate}</small> : null}
               </label>
@@ -98,10 +104,10 @@ export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: C
           ) : null}
         </div>
 
-        <p className="muted">Conversion will create a Contact, use or create an Account, optionally create an Opportunity, and set the Lead status to Converted.</p>
+        <p className="muted">{tModal("conversionBody")}</p>
         <div className="modal-footer">
-          <button type="button" className="button" onClick={onClose}>Cancel</button>
-          <button className="button primary" data-testid="btn-confirm-convert-lead" type="submit">Convert Lead</button>
+          <button type="button" className="button" onClick={onClose}>{tCommon("cancel")}</button>
+          <button className="button primary" data-testid="btn-confirm-convert-lead" type="submit">{tCrm("actions.convertLead")}</button>
         </div>
       </form>
     </div>

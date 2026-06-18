@@ -1,10 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FormEvent, useState } from "react";
+import { useRouter } from "@/i18n/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,7 +27,7 @@ export default function LoginPage() {
 
     if (!response.ok) {
       const body = (await response.json().catch(() => null)) as { error?: string } | null;
-      setError(body?.error ?? "Unable to sign in");
+      setError(body?.error ?? t("error"));
       return;
     }
 
@@ -42,13 +44,11 @@ export default function LoginPage() {
           <span />
           <span />
         </div>
-        <p className="eyebrow">CRM Demo</p>
-        <h1>Sign in to the CRM workspace</h1>
-        <p className="login-copy">
-          THIS IS A DEMO STORE FOR TESTING AND TRAINING PURPOSES
-        </p>
+        <p className="eyebrow">{t("eyebrow")}</p>
+        <h1>{t("title")}</h1>
+        <p className="login-copy">{t("copy")}</p>
         <label>
-          Email
+          {t("email")}
           <input
             data-testid="input-login-email"
             value={email}
@@ -59,7 +59,7 @@ export default function LoginPage() {
           />
         </label>
         <label>
-          Password
+          {t("password")}
           <input
             data-testid="input-login-password"
             value={password}
@@ -71,9 +71,9 @@ export default function LoginPage() {
         </label>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <button className="button primary full" data-testid="btn-login" disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Logging in..." : "Log in"}
+          {isSubmitting ? t("submitting") : t("submit")}
         </button>
-        <p className="login-hint">Seed users: duy@example.com, manager@example.com, admin@example.com, readonly@example.com. Password: demo-password.</p>
+        <p className="login-hint">{t("hint")}</p>
       </form>
     </main>
   );

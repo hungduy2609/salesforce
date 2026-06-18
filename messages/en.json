@@ -1,0 +1,178 @@
+{
+  "brand": {
+    "tagline": "FOR DEMO PURPOSES"
+  },
+  "header": {
+    "search": "Search",
+    "searchPlaceholder": "Search leads, accounts, contacts...",
+    "help": "Help",
+    "settings": "Settings",
+    "logout": "Log out",
+    "appLauncher": "Open app launcher",
+    "actions": "Header actions"
+  },
+  "home": {
+    "eyebrow": "Home dashboard",
+    "title": "Revenue workspace tuned for fast CRM demos.",
+    "description": "Seeded Lightning-style data, stable selectors, modal CRUD flows, timelines, related records, and a Kanban board.",
+    "newLead": "New Lead",
+    "newContact": "New Contact",
+    "newOpportunity": "New Opportunity",
+    "totalLeads": "Total Leads",
+    "accounts": "Accounts",
+    "openDeals": "Open Deals",
+    "revenuePipeline": "Revenue Pipeline",
+    "recentActivities": "Recent Activities",
+    "upcomingTasks": "Upcoming Tasks"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ja": "Japanese"
+  },
+  "login": {
+    "eyebrow": "CRM Demo",
+    "title": "Sign in to the CRM workspace",
+    "copy": "THIS IS A DEMO STORE FOR TESTING AND TRAINING PURPOSES",
+    "email": "Email",
+    "password": "Password",
+    "error": "Unable to sign in",
+    "submit": "Log in",
+    "submitting": "Logging in...",
+    "hint": "Seed users: duy@example.com, manager@example.com, admin@example.com, readonly@example.com. Password: demo-password."
+  },
+  "nav": {
+    "home": "Home",
+    "leads": "Leads",
+    "accounts": "Accounts",
+    "contacts": "Contacts",
+    "opportunities": "Opportunities",
+    "kanban": "Kanban",
+    "activities": "Activities",
+    "reports": "Reports"
+  },
+  "common": {
+    "objectListView": "Object list view",
+    "listView": "List View",
+    "searchThisList": "Search this list",
+    "filter": "Filter",
+    "all": "All",
+    "refresh": "Refresh",
+    "pageOf": "Page {page} of {pageCount}",
+    "previous": "Previous",
+    "next": "Next",
+    "actions": "Actions",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "clone": "Clone",
+    "details": "Details",
+    "activity": "Activity",
+    "related": "Related",
+    "backTo": "Back to {object}",
+    "notFoundTitle": "{object} not found",
+    "notFoundSubtitle": "The requested seeded record does not exist.",
+    "noRelatedRecords": "No related records found.",
+    "noActivities": "No activities found.",
+    "noDescription": "No description",
+    "selectAllRows": "Select all rows",
+    "selectAllActivities": "Select all activities",
+    "selectRecord": "Select {record}",
+    "updated": "Updated {date}"
+    ,"cancel": "Cancel",
+    "save": "Save",
+    "closeModal": "Close modal",
+    "required": "Required",
+    "validAmount": "Enter a valid amount"
+  },
+  "modals": {
+    "confirmDelete": "Confirm delete",
+    "deleteTitle": "Delete {label}?",
+    "deleteBody": "This removes the selected record from the local seeded workspace.",
+    "saveActivity": "Save Activity",
+    "editActivity": "Edit Activity",
+    "newActivity": "New Activity",
+    "relatedObject": "Related Object",
+    "relatedRecord": "Related Record",
+    "description": "Description",
+    "reassignHelp": "Only managers and admins can reassign activities.",
+    "createNewAccount": "Create new account",
+    "useExistingAccount": "Use existing account",
+    "existingAccount": "Existing Account",
+    "createOpportunity": "Create opportunity",
+    "conversionBody": "Conversion will create a Contact, use or create an Account, optionally create an Opportunity, and set the Lead status to Converted."
+  },
+  "crm": {
+    "objects": {
+      "lead": "Lead",
+      "leadPlural": "Leads",
+      "account": "Account",
+      "accountPlural": "Accounts",
+      "contact": "Contact",
+      "contactPlural": "Contacts",
+      "opportunity": "Opportunity",
+      "opportunityPlural": "Opportunities",
+      "activity": "Activity",
+      "activityPlural": "Activities"
+    },
+    "list": {
+      "subtitle": "{count} records in All {object}",
+      "newRecord": "New {object}",
+      "allObjects": "All {object}",
+      "myObjects": "My {object}",
+      "recentlyViewed": "Recently Viewed",
+      "searchPlaceholder": "Search {object}..."
+    },
+    "empty": {
+      "title": "No {object} records found",
+      "withCreate": "Try changing your filters or create a new record.",
+      "withoutCreate": "Try changing your filters or ask a manager for edit access."
+    },
+    "actions": {
+      "convertLead": "Convert Lead",
+      "newTask": "New Task",
+      "logCall": "Log a Call",
+      "addNote": "Add Note",
+      "viewRelated": "View Related"
+    },
+    "tabs": {
+      "upcoming": "Upcoming",
+      "pastActivity": "Past Activity"
+    }
+  },
+  "activities": {
+    "title": "Activities",
+    "subtitle": "{count} timeline items across CRM records",
+    "newActivity": "New Activity",
+    "allActivities": "All Activities",
+    "myActivities": "My Activities",
+    "openActivities": "Open Activities",
+    "searchPlaceholder": "Search activities..."
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Mock summary reports for pipeline and workload.",
+    "openKanban": "Open Kanban",
+    "pipelineByStage": "Pipeline by Stage"
+  },
+  "kanban": {
+    "title": "Opportunity Kanban",
+    "subtitle": "Deals grouped by stage with pipeline totals."
+  },
+  "toast": {
+    "cannotCreateRecords": "Your role does not allow creating CRM records",
+    "cannotEditRecords": "Your role does not allow editing CRM records",
+    "cannotCloneRecords": "Your role does not allow cloning CRM records",
+    "cannotDeleteData": "Your role does not allow deleting CRM data",
+    "cannotCreateActivities": "Your role does not allow creating activities",
+    "cannotEditActivities": "Your role does not allow editing activities",
+    "cannotConvertLeads": "Your role does not allow converting leads",
+    "recordSaved": "{object} {action}",
+    "created": "created",
+    "updated": "updated",
+    "deleted": "{label} deleted",
+    "activitySaved": "Activity {action}",
+    "added": "added",
+    "converted": "{name} converted from lead"
+  }
+}

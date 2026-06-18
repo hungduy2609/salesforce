@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CrmData, ViewName } from "@/lib/types";
 import { AccountsView } from "../views/AccountsView";
 import { ActivitiesView } from "../views/ActivitiesView";
@@ -34,6 +35,7 @@ export function CrmWorkspaceView({ view, recordId, data, actions, permissions }:
 }
 
 function HomeDashboard({ data, actions, permissions }: { data: CrmData; actions: Actions; permissions: CrmPermissions }) {
+  const t = useTranslations("home");
   const openDeals = data.opportunities.filter((opportunity) => !opportunity.stage.startsWith("Closed"));
   const pipeline = openDeals.reduce((sum, opportunity) => sum + opportunity.amount, 0);
   const recent = [...data.activities].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
@@ -43,31 +45,29 @@ function HomeDashboard({ data, actions, permissions }: { data: CrmData; actions:
     <section className="page-stack" data-testid="page-home">
       <div className="hero-panel">
         <div>
-          <p className="eyebrow">Home dashboard</p>
-          <h1>Revenue workspace tuned for fast CRM demos.</h1>
-          <p>
-            Seeded Lightning-style data, stable selectors, modal CRUD flows, timelines, related records, and a Kanban board.
-          </p>
+          <p className="eyebrow">{t("eyebrow")}</p>
+          <h1>{t("title")}</h1>
+          <p>{t("description")}</p>
         </div>
         {permissions.canWrite ? (
           <div className="quick-actions" data-testid="home-quick-actions">
-            <button className="button primary" data-testid="btn-new-lead" onClick={() => actions.openCreate("lead")}>New Lead</button>
-            <button className="button" data-testid="btn-new-contact" onClick={() => actions.openCreate("contact")}>New Contact</button>
-            <button className="button" data-testid="btn-new-opportunity" onClick={() => actions.openCreate("opportunity")}>New Opportunity</button>
+            <button className="button primary" data-testid="btn-new-lead" onClick={() => actions.openCreate("lead")}>{t("newLead")}</button>
+            <button className="button" data-testid="btn-new-contact" onClick={() => actions.openCreate("contact")}>{t("newContact")}</button>
+            <button className="button" data-testid="btn-new-opportunity" onClick={() => actions.openCreate("opportunity")}>{t("newOpportunity")}</button>
           </div>
         ) : null}
       </div>
 
       <div className="summary-grid" data-testid="summary-cards">
-        <SummaryCard label="Total Leads" value={data.leads.length.toString()} tone="blue" />
-        <SummaryCard label="Accounts" value={data.accounts.length.toString()} tone="mint" />
-        <SummaryCard label="Open Deals" value={openDeals.length.toString()} tone="amber" />
-        <SummaryCard label="Revenue Pipeline" value={currency(pipeline)} tone="violet" />
+        <SummaryCard label={t("totalLeads")} value={data.leads.length.toString()} tone="blue" />
+        <SummaryCard label={t("accounts")} value={data.accounts.length.toString()} tone="mint" />
+        <SummaryCard label={t("openDeals")} value={openDeals.length.toString()} tone="amber" />
+        <SummaryCard label={t("revenuePipeline")} value={currency(pipeline)} tone="violet" />
       </div>
 
       <div className="two-column">
-        <ActivityPanel title="Recent Activities" activities={recent} data={data} />
-        <ActivityPanel title="Upcoming Tasks" activities={upcoming} data={data} />
+        <ActivityPanel title={t("recentActivities")} activities={recent} data={data} />
+        <ActivityPanel title={t("upcomingTasks")} activities={upcoming} data={data} />
       </div>
     </section>
   );
