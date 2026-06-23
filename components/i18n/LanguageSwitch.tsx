@@ -1,8 +1,6 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { startTransition } from "react";
-import { usePathname, useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 
 const languageOptions: Array<{ locale: Locale; shortLabel: string }> = [
@@ -12,16 +10,15 @@ const languageOptions: Array<{ locale: Locale; shortLabel: string }> = [
 
 export function LanguageSwitch() {
   const locale = useLocale() as Locale;
-  const pathname = usePathname();
-  const router = useRouter();
   const t = useTranslations("language");
 
   function switchLocale(nextLocale: Locale) {
     if (nextLocale === locale) return;
 
-    startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
-    });
+    const { pathname, search, hash } = window.location;
+    const nextPathname = pathname.replace(/^\/(en|ja)(?=\/|$)/, `/${nextLocale}`);
+
+    window.location.replace(`${nextPathname}${search}${hash}`);
   }
 
   return (
