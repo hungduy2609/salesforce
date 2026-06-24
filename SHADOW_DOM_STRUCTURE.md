@@ -1,6 +1,6 @@
 # Shadow DOM Structure
 
-This document describes how Shadow DOM is currently used in the project and how to add a new page or level.
+This document describes the current Shadow DOM render flow and how boundaries are applied in the CRM app.
 
 ## Main File
 
@@ -8,51 +8,47 @@ This document describes how Shadow DOM is currently used in the project and how 
 components/shadow/ShadowBoundary.tsx
 ```
 
-`ShadowBoundary` is the component used to create a Shadow DOM boundary. It does the following:
+`ShadowBoundary` creates the project's Shadow DOM boundaries. It:
 
-- Creates a `shadowRoot` with `host.attachShadow({ mode: "open" })`.
-- Creates a mount node inside the shadow root.
-- Renders React children into the shadow root with `createPortal`.
-- Copies CSS from `document.styleSheets` into the shadow root.
-- Replaces `:root` with `:host` so CSS variables can work inside the shadow tree.
+- Creates an open `shadowRoot`
+- Creates a mount node inside the shadow root
+- Renders children into that mount node with `createPortal`
+- Copies CSS from `document.styleSheets`
+- Rewrites `:root` to `:host` so variables still work in the shadow tree
 
 ## Current Render Flow
 
+For a locale-aware CRM page such as accounts:
+
 ```txt
-app/app/accounts/page.tsx
+app/[locale]/app/accounts/page.tsx
   -> CrmWorkspaceShell
     -> CrmWorkspace
       -> ShadowBoundary name="crm-view-surface" level={3}
         -> CrmWorkspaceView
 ```
 
-Example of an existing CRM page:
+The outer app shell layers are created higher in the route layout:
 
-```tsx
-import { CrmWorkspaceShell } from "@/components/crm/CrmWorkspaceShell";
-
-export default function AccountsPage() {
-  return <CrmWorkspaceShell view="accounts" />;
-}
+```txt
+app/[locale]/app/layout.tsx
+  -> AppShell
+    -> ShadowBoundary name="crm-app-shell" level={1}
+      -> ShadowBoundary name="crm-main-content" level={2}
+        -> route children
 ```
 
-Inside `CrmWorkspace`, the view is wrapped with Shadow DOM:
+## Current Boundary Map
 
-```tsx
-<ShadowBoundary name="crm-view-surface" level={3} dataTestId="shadow-crm-view-surface">
-  <CrmWorkspaceView
-    view={controller.view}
-    recordId={controller.recordId}
-    data={controller.data}
-    actions={controller.actions}
-    permissions={controller.permissions}
-  />
-</ShadowBoundary>
+```txt
+crm-app-shell      level 1
+crm-main-content   level 2
+crm-view-surface   level 3
 ```
 
-## Resulting DOM Structure
+## Resulting DOM Shape
 
-In the browser, the structure is roughly:
+A level 3 workspace boundary renders roughly like this:
 
 ```txt
 div[data-shadow-boundary="crm-view-surface"][data-shadow-level="3"]
@@ -62,7 +58,7 @@ div[data-shadow-boundary="crm-view-surface"][data-shadow-level="3"]
       CrmWorkspaceView content
 ```
 
-## ShadowBoundary Props
+## `ShadowBoundary` Props
 
 ```tsx
 type ShadowBoundaryProps = {
@@ -77,13 +73,13 @@ type ShadowBoundaryProps = {
 
 Meaning:
 
-- `name`: Boundary name, used for `data-shadow-boundary` and the mount node.
-- `level`: Shadow level. Currently this is only an attribute used for level-based styling.
-- `className`: Class assigned to the host element outside the shadow root.
-- `dataTestId`: Test id for the host element.
-- `style`: Inline style for the host element.
+- `name`: Boundary identifier used in `data-shadow-boundary` and `data-shadow-mount`
+- `level`: Structural level marker used for attributes and base styling
+- `className`: Class on the host element outside the shadow root
+- `dataTestId`: Test selector for the host element
+- `style`: Inline style for the host element
 
-## Base CSS Inside Shadow DOM
+## Base Shadow Styles
 
 `ShadowBoundary` injects base styles into every shadow root:
 
@@ -105,9 +101,11 @@ Meaning:
 }
 ```
 
-## Adding a New CRM Page
+The actual implementation also applies base box-sizing and form-control inheritance rules.
 
-If the new page uses the CRM workspace, only use `CrmWorkspaceShell`:
+## Adding A New CRM Page
+
+If the page belongs to the CRM workspace, keep the route thin and delegate to `CrmWorkspaceShell`.
 
 ```tsx
 import { CrmWorkspaceShell } from "@/components/crm/CrmWorkspaceShell";
@@ -119,13 +117,13 @@ export default function LeadsPage() {
 
 Requirements:
 
-- `leads` must exist in `ViewName`.
-- `CrmWorkspaceView` must handle the `leads` view.
-- You do not need to wrap the page with another `ShadowBoundary` because `CrmWorkspace` already does it.
+- The `view` must exist in `ViewName`
+- `CrmWorkspaceView` must support that view
+- You do not need another boundary if `CrmWorkspace` already wraps the surface
 
-## Adding a Custom Page With Shadow DOM
+## Adding A Custom Page With Shadow DOM
 
-If the new page does not use the CRM workspace, create a client component and wrap it with `ShadowBoundary`:
+If a page does not use the CRM workspace but still needs CSS isolation, create a client component and wrap it directly.
 
 ```tsx
 "use client";
@@ -134,34 +132,26 @@ import { ShadowBoundary } from "@/components/shadow/ShadowBoundary";
 
 export function NewPageClient() {
   return (
-    <ShadowBoundary name="new-page-surface" level={3}>
-      <main>
-        New page content
-      </main>
+    <ShadowBoundary name="new-page-surface" level={3} dataTestId="shadow-new-page-surface">
+      <main>New page content</main>
     </ShadowBoundary>
   );
 }
 ```
 
-Then import the client component from the server page:
+Then render it from the route file.
 
-```tsx
-import { NewPageClient } from "@/components/new-page/NewPageClient";
+## Adding A New Level
 
-export default function NewPage() {
-  return <NewPageClient />;
-}
-```
+If the project ever needs another formal level, update the prop type in `ShadowBoundary.tsx` and extend the base styling for that level.
 
-## Adding a New Level
-
-If you want to use `level={4}`, update the type in `ShadowBoundary.tsx`:
+Example:
 
 ```tsx
 level: 1 | 2 | 3 | 4;
 ```
 
-Then add CSS for the new level:
+And extend styles accordingly:
 
 ```css
 :host([data-shadow-level="2"]),
@@ -171,45 +161,12 @@ Then add CSS for the new level:
 }
 ```
 
-Usage:
-
-```tsx
-<ShadowBoundary name="lead-detail-surface" level={4}>
-  <LeadDetail />
-</ShadowBoundary>
-```
-
-## Nested Shadow DOM
-
-`level` does not automatically create nested shadow roots. If you need real nested Shadow DOM, wrap a `ShadowBoundary` inside another `ShadowBoundary`:
-
-```tsx
-<ShadowBoundary name="level-3-surface" level={3}>
-  <section>
-    Level 3 content
-
-    <ShadowBoundary name="level-4-surface" level={4}>
-      <div>Level 4 content</div>
-    </ShadowBoundary>
-  </section>
-</ShadowBoundary>
-```
-
-Result:
-
-```txt
-level-3 host
-  #shadow-root
-    level-3 content
-      level-4 host
-        #shadow-root
-          level-4 content
-```
+`level` does not create nesting on its own. Real nesting only happens when one `ShadowBoundary` is rendered inside another.
 
 ## Usage Rules
 
-- Use `CrmWorkspaceShell` for CRM pages.
-- Use `ShadowBoundary` directly for custom pages that need CSS isolation.
-- Each `name` should be unique within the same UI area.
-- Add a new level only when you need different style or layout behavior by level.
-- If you need nested Shadow DOM, wrap another `ShadowBoundary`; do not rely on `level` alone.
+- Use `AppShell` to provide level 1 and level 2 structure
+- Use `CrmWorkspace` to provide the standard level 3 CRM surface
+- Use `ShadowBoundary` directly only for custom isolated surfaces
+- Keep boundary names unique within the same UI region
+- Add new levels only when layout behavior or tooling truly requires them

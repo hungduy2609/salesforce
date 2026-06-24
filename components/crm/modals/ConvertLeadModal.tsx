@@ -2,12 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import type { Locale } from "@/i18n/routing";
 import type { CrmData } from "@/lib/types";
 import { findById, fullName, today, translateValue } from "../workspace/helpers";
 import type { ConvertLeadValues } from "../workspace/types";
 
-export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: CrmData; leadId: string; onClose: () => void; onConvert: (values: ConvertLeadValues) => void }) {
+export function ConvertLeadModal({ data, leadId, isConverting, onClose, onConvert }: { data: CrmData; leadId: string; isConverting: boolean; onClose: () => void; onConvert: (values: ConvertLeadValues) => void }) {
   const locale = useLocale() as Locale;
   const tCommon = useTranslations("common");
   const tCrm = useTranslations("crm");
@@ -53,7 +54,7 @@ export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: C
             <p className="eyebrow">{tCrm("actions.convertLead")}</p>
             <h2>{fullName(lead)}</h2>
           </div>
-          <button type="button" className="icon-button" aria-label={tCommon("closeModal")} onClick={onClose}>×</button>
+          <button type="button" className="icon-button" aria-label={tCommon("closeModal")} onClick={onClose} disabled={isConverting}>×</button>
         </div>
 
         <div className="form-grid">
@@ -106,8 +107,10 @@ export function ConvertLeadModal({ data, leadId, onClose, onConvert }: { data: C
 
         <p className="muted">{tModal("conversionBody")}</p>
         <div className="modal-footer">
-          <button type="button" className="button" onClick={onClose}>{tCommon("cancel")}</button>
-          <button className="button primary" data-testid="btn-confirm-convert-lead" type="submit">{tCrm("actions.convertLead")}</button>
+          <button type="button" className="button" onClick={onClose} disabled={isConverting}>{tCommon("cancel")}</button>
+          <button className="button primary" data-testid="btn-confirm-convert-lead" type="submit" disabled={isConverting}>
+            {isConverting ? <LoadingIndicator label={tCommon("converting")} size="sm" /> : tCrm("actions.convertLead")}
+          </button>
         </div>
       </form>
     </div>

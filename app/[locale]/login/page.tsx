@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { FormEvent, useState } from "react";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { useRouter } from "@/i18n/navigation";
 
 export default function LoginPage() {
@@ -71,7 +72,7 @@ export default function LoginPage() {
         </label>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <button className="button primary full" data-testid="btn-login" disabled={isSubmitting} type="submit">
-          {isSubmitting ? t("submitting") : t("submit")}
+          {isSubmitting ? <LoadingIndicator label={t("submitting")} size="sm" /> : t("submit")}
         </button>
         <p className="login-hint">{t("hint")}</p>
       </form>

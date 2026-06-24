@@ -6,6 +6,7 @@ import type { UserRole } from "@prisma/client";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useCrmState } from "../CrmStateProvider";
 import {
     applyLeadConversion,
     buildLocalLeadConversion,
@@ -47,60 +48,71 @@ export function useCrmWorkspaceController({
   ownerUsers = [{ id: "Duy", name: "Duy", roleLabel: "Demo User" }]
 }: CrmWorkspaceProps) {
   const locale = useLocale() as Locale;
+  const tCommon = useTranslations("common");
   const tToast = useTranslations("toast");
   const router = useRouter();
-  const [data, setData] = useState<CrmData>(() => structuredClone(initialData));
+  const crmState = useCrmState();
+  const [localData, setLocalData] = useState<CrmData>(() => structuredClone(initialData));
   const [modal, setModal] = useState<ModalState>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteState>(null);
   const [activityModal, setActivityModal] = useState<ActivityModalState>(null);
   const [convertModal, setConvertModal] = useState<ConvertModalState>(null);
   const [toast, setToast] = useState<string>("");
+  const [busyMessage, setBusyMessage] = useState<string>("");
+  const isBusy = Boolean(busyMessage);
+  const data = crmState?.data ?? localData;
+  const setData = crmState?.setData ?? setLocalData;
+  const resolvedDatabaseEnabled = crmState?.databaseEnabled ?? databaseEnabled;
+  const resolvedPermissions = crmState?.permissions ?? permissions;
+  const resolvedCurrentUser = crmState?.currentUser ?? currentUser;
+  const resolvedOwnerUsers = crmState?.ownerUsers ?? ownerUsers;
 
   const actions = {
     openCreate: (object: CrmObject) => {
-      if (!permissions.canWrite) return setToast(tToast("cannotCreateRecords"));
+      if (!resolvedPermissions.canWrite) return setToast(tToast("cannotCreateRecords"));
       setModal({ object, mode: "create" });
     },
     openEdit: (object: CrmObject, id: string) => {
-      if (!permissions.canWrite) return setToast(tToast("cannotEditRecords"));
+      if (!resolvedPermissions.canWrite) return setToast(tToast("cannotEditRecords"));
       setModal({ object, mode: "edit", id });
     },
     openClone: (object: CrmObject, id: string) => {
-      if (!permissions.canWrite) return setToast(tToast("cannotCloneRecords"));
+      if (!resolvedPermissions.canWrite) return setToast(tToast("cannotCloneRecords"));
       setModal({ object, mode: "clone", id });
     },
     openDelete: (object: CrmObject | "activity", id: string, label: string) => {
-      if (!permissions.canDelete) return setToast(tToast("cannotDeleteData"));
+      if (!resolvedPermissions.canDelete) return setToast(tToast("cannotDeleteData"));
       setDeleteTarget({ object, id, label });
     },
     openActivity: (relatedType: CrmObject, relatedId: string, type: ActivityType) => {
-      if (!permissions.canWrite) return setToast(tToast("cannotCreateActivities"));
+      if (!resolvedPermissions.canWrite) return setToast(tToast("cannotCreateActivities"));
       setActivityModal({ mode: "create", relatedType, relatedId, type });
     },
     openCreateActivity: () => {
-      if (!permissions.canWrite) return setToast(tToast("cannotCreateActivities"));
+      if (!resolvedPermissions.canWrite) return setToast(tToast("cannotCreateActivities"));
       setActivityModal({ mode: "create" });
     },
     openEditActivity: (id: string) => {
-      if (!permissions.canWrite) return setToast(tToast("cannotEditActivities"));
+      if (!resolvedPermissions.canWrite) return setToast(tToast("cannotEditActivities"));
       setActivityModal({ mode: "edit", id });
     },
     openConvertLead: (leadId: string) => {
-      if (!permissions.canWrite) return setToast(tToast("cannotConvertLeads"));
+      if (!resolvedPermissions.canWrite) return setToast(tToast("cannotConvertLeads"));
       setConvertModal({ leadId });
     }
   };
 
   function saveRecord(object: CrmObject, mode: RecordMode, values: Record<string, string>, id?: string) {
     const now = today();
-    const { nextData, record } = buildRecordChange(data, object, mode, values, now, id, currentUser);
+    const { nextData, record } = buildRecordChange(data, object, mode, values, now, id, resolvedCurrentUser);
 
     setData(nextData);
     setToast(tToast("recordSaved", { object: translateValue(object, locale), action: mode === "edit" ? tToast("updated") : tToast("created") }));
     setModal(null);
 
-    if (databaseEnabled) {
-      void saveRecordToDatabase(object, record, setToast, () => router.refresh());
+    if (resolvedDatabaseEnabled) {
+      setBusyMessage(tCommon("saving"));
+      void saveRecordToDatabase(object, record, setToast, () => router.refresh()).finally(() => setBusyMessage(""));
     }
   }
 
@@ -137,8 +149,9 @@ export function useCrmWorkspaceController({
     setToast(tToast("deleted", { label: target.label }));
     setDeleteTarget(null);
 
-    if (databaseEnabled) {
-      void deleteFromDatabase(target.object, target.id, setToast, () => router.refresh());
+    if (resolvedDatabaseEnabled) {
+      setBusyMessage(tCommon("deleting"));
+      void deleteFromDatabase(target.object, target.id, setToast, () => router.refresh()).finally(() => setBusyMessage(""));
     }
   }
 
@@ -162,8 +175,9 @@ export function useCrmWorkspaceController({
     setToast(tToast("activitySaved", { action: activityModal.mode === "edit" ? tToast("updated") : tToast("added") }));
     setActivityModal(null);
 
-    if (databaseEnabled) {
-      void saveActivityToDatabase(activity, setToast, () => router.refresh());
+    if (resolvedDatabaseEnabled) {
+      setBusyMessage(tCommon("saving"));
+      void saveActivityToDatabase(activity, setToast, () => router.refresh()).finally(() => setBusyMessage(""));
     }
   }
 
@@ -173,8 +187,9 @@ export function useCrmWorkspaceController({
 
     setConvertModal(null);
 
-    if (databaseEnabled) {
-      const result = await convertLeadInDatabase(values, setToast);
+    if (resolvedDatabaseEnabled) {
+      setBusyMessage(tCommon("converting"));
+      const result = await convertLeadInDatabase(values, setToast).finally(() => setBusyMessage(""));
       if (!result) return;
 
       setData((current) => applyLeadConversion(current, result));
@@ -197,9 +212,11 @@ export function useCrmWorkspaceController({
     activityModal,
     convertModal,
     toast,
-    permissions,
-    currentUser,
-    ownerUsers,
+    busyMessage,
+    isBusy,
+    permissions: resolvedPermissions,
+    currentUser: resolvedCurrentUser,
+    ownerUsers: resolvedOwnerUsers,
     actions,
     saveRecord,
     confirmDelete,

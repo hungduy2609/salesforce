@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 type ShadowBoundaryProps = {
@@ -58,14 +58,15 @@ const shadowBaseStyles = `
 `;
 
 export function ShadowBoundary({ children, name, level, className, dataTestId, style }: ShadowBoundaryProps) {
-  const [host, setHost] = useState<HTMLDivElement | null>(null);
+  const hostRef = useRef<HTMLDivElement | null>(null);
   const [mountNode, setMountNode] = useState<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
+    const host = hostRef.current;
     if (!host) return;
 
     const shadowRoot = host.shadowRoot ?? host.attachShadow({ mode: "open" });
-    let mount = shadowRoot.querySelector<HTMLDivElement>("[data-shadow-mount]");
+    let mount = shadowRoot.querySelector<HTMLDivElement>(`[data-shadow-mount="${name}"]`);
 
     if (!mount) {
       mount = document.createElement("div");
@@ -74,16 +75,12 @@ export function ShadowBoundary({ children, name, level, className, dataTestId, s
     }
 
     syncShadowStyles(shadowRoot);
-    setMountNode(mount);
-
-    return () => {
-      setMountNode(null);
-    };
-  }, [host, name]);
+    setMountNode((current) => (current === mount ? current : mount));
+  }, [name]);
 
   return (
     <div
-      ref={setHost}
+      ref={hostRef}
       className={className}
       data-shadow-boundary={name}
       data-shadow-level={level}

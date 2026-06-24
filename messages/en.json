@@ -83,7 +83,12 @@
     "save": "Save",
     "closeModal": "Close modal",
     "required": "Required",
-    "validAmount": "Enter a valid amount"
+    "validAmount": "Enter a valid amount",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "converting": "Converting...",
+    "loggingOut": "Logging out..."
   },
   "modals": {
     "confirmDelete": "Confirm delete",

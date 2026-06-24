@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import type { Locale } from "@/i18n/routing";
 import type { OwnerUser } from "@/lib/crm-data";
 import type { CrmData, CrmObject } from "@/lib/types";
@@ -26,7 +27,7 @@ import {
 import type { ActivityModalState, CurrentUser, ModalState, RecordMode } from "../workspace/types";
 import { objectMeta } from "../workspace/types";
 
-export function RecordModal({ data, modal, currentUser, ownerUsers, canTransferOwner, onClose, onSave }: { data: CrmData; modal: NonNullable<ModalState>; currentUser: CurrentUser; ownerUsers: OwnerUser[]; canTransferOwner: boolean; onClose: () => void; onSave: (object: CrmObject, mode: RecordMode, values: Record<string, string>, id?: string) => void }) {
+export function RecordModal({ data, modal, currentUser, ownerUsers, canTransferOwner, isSaving, onClose, onSave }: { data: CrmData; modal: NonNullable<ModalState>; currentUser: CurrentUser; ownerUsers: OwnerUser[]; canTransferOwner: boolean; isSaving: boolean; onClose: () => void; onSave: (object: CrmObject, mode: RecordMode, values: Record<string, string>, id?: string) => void }) {
   const locale = useLocale() as Locale;
   const tCommon = useTranslations("common");
   const source = modal.id ? findById(recordsForObject(data, modal.object), modal.id) : undefined;
@@ -63,22 +64,24 @@ export function RecordModal({ data, modal, currentUser, ownerUsers, canTransferO
             <p className="eyebrow">{translateValue(capitalize(modal.mode), locale)}</p>
             <h2>{modal.mode === "edit" ? tCommon("edit") : translateValue("New", locale)} {objectName}</h2>
           </div>
-          <button type="button" className="icon-button" aria-label={tCommon("closeModal")} onClick={onClose}>×</button>
+          <button type="button" className="icon-button" aria-label={tCommon("closeModal")} onClick={onClose} disabled={isSaving}>×</button>
         </div>
         {modal.object === "lead" ? <LeadForm {...formProps} /> : null}
         {modal.object === "account" ? <AccountForm {...formProps} /> : null}
         {modal.object === "contact" ? <ContactForm {...formProps} /> : null}
         {modal.object === "opportunity" ? <OpportunityForm {...formProps} /> : null}
         <div className="modal-footer">
-          <button type="button" className="button" data-testid={`btn-cancel-${meta.test}`} onClick={onClose}>{tCommon("cancel")}</button>
-          <button type="submit" className="button primary" data-testid={`btn-save-${meta.test}`}>{tCommon("save")}</button>
+          <button type="button" className="button" data-testid={`btn-cancel-${meta.test}`} onClick={onClose} disabled={isSaving}>{tCommon("cancel")}</button>
+          <button type="submit" className="button primary" data-testid={`btn-save-${meta.test}`} disabled={isSaving}>
+            {isSaving ? <LoadingIndicator label={tCommon("saving")} size="sm" /> : tCommon("save")}
+          </button>
         </div>
       </form>
     </div>
   );
 }
 
-export function ActivityFormModal({ data, modal, currentUser, ownerUsers, canTransferOwner, onClose, onSave }: { data: CrmData; modal: ActivityModalState; currentUser: CurrentUser; ownerUsers: OwnerUser[]; canTransferOwner: boolean; onClose: () => void; onSave: (values: Record<string, string>) => void }) {
+export function ActivityFormModal({ data, modal, currentUser, ownerUsers, canTransferOwner, isSaving, onClose, onSave }: { data: CrmData; modal: ActivityModalState; currentUser: CurrentUser; ownerUsers: OwnerUser[]; canTransferOwner: boolean; isSaving: boolean; onClose: () => void; onSave: (values: Record<string, string>) => void }) {
   const locale = useLocale() as Locale;
   const tCommon = useTranslations("common");
   const tModal = useTranslations("modals");
@@ -117,7 +120,7 @@ export function ActivityFormModal({ data, modal, currentUser, ownerUsers, canTra
       <form className="modal compact" data-testid="modal-activity-form" onSubmit={(event) => { event.preventDefault(); onSave(values); }}>
         <div className="modal-header">
           <div><p className="eyebrow">{tActivities("title")}</p><h2>{safeModal.mode === "edit" ? tModal("editActivity") : tModal("newActivity")}</h2></div>
-          <button type="button" className="icon-button" aria-label={tCommon("closeModal")} onClick={onClose}>×</button>
+          <button type="button" className="icon-button" aria-label={tCommon("closeModal")} onClick={onClose} disabled={isSaving}>×</button>
         </div>
         <label>{translateValue("Type", locale)}<select data-testid="select-activity-type" value={values.type} onChange={(event) => change("type", event.target.value)}>{["Call", "Task", "Note", "Email"].map((type) => <option key={type} value={type}>{translateValue(type, locale)}</option>)}</select></label>
         <label>{tModal("relatedObject")}<select data-testid="select-activity-related-type" value={values.relatedType} onChange={(event) => change("relatedType", event.target.value)}>{(["lead", "account", "contact", "opportunity"] as CrmObject[]).map((type) => <option key={type} value={type}>{translateValue(type, locale)}</option>)}</select></label>
@@ -127,7 +130,7 @@ export function ActivityFormModal({ data, modal, currentUser, ownerUsers, canTra
         <label>{translateValue("Due Date", locale)}<input data-testid="input-activity-due-date" type="date" value={values.dueDate} onChange={(event) => change("dueDate", event.target.value)} /></label>
         <label>{translateValue("Status", locale)}<select data-testid="select-activity-status-modal" value={values.status} onChange={(event) => change("status", event.target.value)}><option value="Open">{translateValue("Open", locale)}</option><option value="Completed">{translateValue("Completed", locale)}</option></select></label>
         <label>{translateValue("Assigned To", locale)}<select data-testid="select-activity-created-by" value={values.createdBy} disabled={!canTransferOwner} onChange={(event) => change("createdBy", event.target.value)}>{ownerOptions(ownerUsers, values.createdBy).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>{!canTransferOwner ? <small className="field-help">{tModal("reassignHelp")}</small> : null}</label>
-        <div className="modal-footer"><button type="button" className="button" onClick={onClose}>{tCommon("cancel")}</button><button className="button primary" type="submit">{tModal("saveActivity")}</button></div>
+        <div className="modal-footer"><button type="button" className="button" onClick={onClose} disabled={isSaving}>{tCommon("cancel")}</button><button className="button primary" type="submit" disabled={isSaving}>{isSaving ? <LoadingIndicator label={tCommon("saving")} size="sm" /> : tModal("saveActivity")}</button></div>
       </form>
     </div>
   );

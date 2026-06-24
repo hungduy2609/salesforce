@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { ShadowBoundary } from "@/components/shadow/ShadowBoundary";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { LanguageSwitch } from "@/components/i18n/LanguageSwitch";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import logo from "@/image/logo.png";
@@ -29,13 +31,16 @@ export function AppShell({ children, user }: { children: React.ReactNode; user: 
   const pathname = usePathname();
   const router = useRouter();
   const tBrand = useTranslations("brand");
+  const tCommon = useTranslations("common");
   const tHeader = useTranslations("header");
   const tNav = useTranslations("nav");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const activeHref = [...navigation]
     .sort((left, right) => right.href.length - left.href.length)
     .find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.href;
 
   async function handleLogout() {
+    setIsLoggingOut(true);
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
@@ -74,7 +79,9 @@ export function AppShell({ children, user }: { children: React.ReactNode; user: 
               <b>{user.name}</b>
               <small>{user.roleLabel}</small>
             </div>
-            <button data-testid="btn-logout" onClick={handleLogout}>{tHeader("logout")}</button>
+            <button data-testid="btn-logout" onClick={handleLogout} disabled={isLoggingOut}>
+              {isLoggingOut ? <LoadingIndicator label={tCommon("loggingOut")} size="sm" /> : tHeader("logout")}
+            </button>
           </div>
         </header>
 

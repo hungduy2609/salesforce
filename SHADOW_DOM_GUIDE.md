@@ -1,46 +1,57 @@
 # Shadow DOM Guide
 
-Huong dan nay mo ta cach tao va su dung Shadow DOM trong project CRM hien tai.
+This guide explains how Shadow DOM is used in the current CRM project and when to add new boundaries.
 
-## Kien Truc Hien Tai
+## Current Architecture
 
-Project dang dung `ShadowBoundary` tai:
+The project uses `ShadowBoundary` here:
 
 ```txt
 components/shadow/ShadowBoundary.tsx
 ```
 
-Component nay:
+This component:
 
-- Tao Shadow Root bang `attachShadow({ mode: "open" })`.
-- Render React children vao Shadow Root bang `createPortal`.
-- Dong bo CSS hien tai tu `document.styleSheets` vao Shadow Root.
-- Giu Next.js router context vi van nam trong React tree chinh.
+- Creates an open shadow root with `attachShadow({ mode: "open" })`
+- Renders React children into the shadow root with `createPortal`
+- Copies CSS from `document.styleSheets` into the shadow root
+- Rewrites `:root` selectors to `:host` so CSS variables continue to work
+- Preserves React and Next.js context because rendering still happens in the same React tree
 
-He thong dang co 3 cap Shadow DOM:
+The app currently uses three boundary levels:
 
 ```txt
-crm-app-shell      Level 1: app shell, header, navigation
-crm-main-content   Level 2: main content area
-crm-view-surface   Level 3: CRM page/view surface
+crm-app-shell      Level 1: top-level shell
+crm-main-content   Level 2: authenticated main content area
+crm-view-surface   Level 3: CRM workspace surface
 ```
 
-## Khi Nao Nen Tao Shadow DOM Moi
+## When To Add A New Boundary
 
-Nen tao Shadow DOM moi khi can:
+Add a new boundary when you need:
 
-- Cach ly CSS cho mot khu vuc UI lon.
-- Mo phong Salesforce Lightning/Web Components.
-- Bao ve component khoi global CSS ben ngoai.
-- Tao boundary ro rang cho mot module CRM moi.
+- CSS isolation for a large UI region
+- A clear module-level encapsulation point
+- Stable Shadow DOM structure for automation
+- A Salesforce-like component boundary
 
-Khong nen tao Shadow DOM moi cho:
+Do not add a new boundary for:
 
-- Button nho, label, icon rieng le.
-- Component can ke thua style global truc tiep ma khong co ly do cach ly.
-- Modal/toast neu co nguy co bi loi stacking context hoac fixed positioning.
+- Small leaf components such as buttons or icons
+- Simple UI that should inherit global layout naturally
+- Overlays that rely on stable stacking or fixed positioning unless there is a clear reason
 
-## Cach Tao Boundary Moi
+## Current Placement Strategy
+
+The current structure is:
+
+- `AppShell` owns level 1 and level 2 boundaries
+- `CrmWorkspace` owns the level 3 boundary
+- Modals and toast-like overlays should stay outside level 3 and inside level 2
+
+This reduces the chance of `position: fixed`, clipping, and z-index issues.
+
+## Creating A New Boundary
 
 Import `ShadowBoundary`:
 
@@ -48,7 +59,7 @@ Import `ShadowBoundary`:
 import { ShadowBoundary } from "@/components/shadow/ShadowBoundary";
 ```
 
-Wrap khu vuc can cach ly:
+Wrap the target region:
 
 ```tsx
 <ShadowBoundary
@@ -56,21 +67,21 @@ Wrap khu vuc can cach ly:
   level={3}
   dataTestId="shadow-crm-new-module"
 >
-  <section className="page-stack" data-testid="page-new-module">
+  <section data-testid="page-new-module">
     ...
   </section>
 </ShadowBoundary>
 ```
 
-Quy uoc dat ten:
+Naming rules:
 
 ```txt
-name:       kebab-case, co prefix crm-
+name:       kebab-case, preferably with a crm- prefix
 dataTestId: shadow- + name
 level:      1 | 2 | 3
 ```
 
-Vi du:
+Example:
 
 ```tsx
 <ShadowBoundary name="crm-report-widget" level={3} dataTestId="shadow-crm-report-widget">
@@ -78,17 +89,17 @@ Vi du:
 </ShadowBoundary>
 ```
 
-## Y Nghia Level
+## Level Meaning
 
-Dung `level` de document ro tang Shadow DOM:
+The `level` prop documents structural intent.
 
 ```txt
-level={1}: shell lon nhat cua app
-level={2}: workspace/main content
-level={3}: page, widget, panel, module nghiep vu
+level={1}: outer application shell
+level={2}: authenticated workspace content region
+level={3}: page, module, or business surface
 ```
 
-Vi du nested 3 cap:
+Nested example:
 
 ```tsx
 <ShadowBoundary name="crm-app-shell" level={1}>
@@ -104,17 +115,17 @@ Vi du nested 3 cap:
 </ShadowBoundary>
 ```
 
-## CSS Trong Shadow DOM
+## CSS Behavior Inside Shadow DOM
 
-`ShadowBoundary` hien tai tu dong copy CSS tu document vao Shadow Root.
+`ShadowBoundary` automatically syncs document styles into the shadow root.
 
-Dieu nay giup:
+This means:
 
-- Khong phai copy `globals.css` bang tay.
-- Giu UI hien tai khong bi mat style.
-- Chi can maintain style tai `app/globals.css`.
+- Global app CSS continues to work inside shadow trees
+- New styles can still be authored in `app/globals.css`
+- CSS variables remain available because `:root` is rewritten to `:host`
 
-Neu them class moi, cu viet CSS nhu binh thuong trong `app/globals.css`:
+Example global CSS:
 
 ```css
 .new-panel {
@@ -124,36 +135,17 @@ Neu them class moi, cu viet CSS nhu binh thuong trong `app/globals.css`:
 }
 ```
 
-Sau do su dung trong component ben trong Shadow DOM:
+Usage inside a shadow boundary:
 
 ```tsx
 <div className="new-panel">...</div>
 ```
 
-## Luu Y Ve Modal Va Toast
+## Automation Notes
 
-Khong nen wrap modal/toast qua nhieu cap Shadow DOM neu khong can thiet.
+The component uses `mode: "open"`, so automation can query through `shadowRoot` when needed.
 
-Ly do:
-
-- `position: fixed` co the bi anh huong boi host/container.
-- `z-index` co the kho debug hon khi nested sau nhieu Shadow Root.
-- Overlay nen nam o boundary gan workspace de on dinh hon.
-
-Trong project hien tai:
-
-```txt
-CRM view nam trong level 3
-Modal/toast nam ngoai level 3, nhung van ben trong level 2
-```
-
-Day la cach can bang giua nested Shadow DOM va UI overlay on dinh.
-
-## Automation Va Test Selector
-
-Shadow DOM dang dung `mode: "open"`, nen co the query qua `shadowRoot`.
-
-Vi du browser query:
+Example:
 
 ```js
 document
@@ -162,7 +154,7 @@ document
   .querySelector('[data-testid="app-shell"]');
 ```
 
-Neu can query sau 3 cap:
+Three-level traversal:
 
 ```js
 const level1 = document.querySelector('[data-testid="shadow-crm-app-shell"]').shadowRoot;
@@ -172,49 +164,22 @@ const level3 = level2.querySelector('[data-testid="shadow-crm-view-surface"]').s
 level3.querySelector('[data-testid="page-home"]');
 ```
 
-Playwright co the pierce open Shadow DOM bang locator thong thuong trong nhieu truong hop:
+Many modern test tools can pierce open Shadow DOM automatically for simple selectors, but direct `shadowRoot` traversal is still the most explicit fallback.
 
-```ts
-await page.getByTestId("page-home").isVisible();
-```
+## Checklist Before Merging
 
-Neu test runner khong tu pierce Shadow DOM, query tung `shadowRoot` nhu vi du tren.
+- Boundary name is clear and unique
+- `data-testid` is present for automation when needed
+- Overlay UI is not pushed unnecessarily deeper into nested boundaries
+- Desktop and mobile layout still work
+- `npm.cmd run typecheck` passes
+- `npm.cmd run build` passes
 
-## Checklist Khi Them Shadow DOM Moi
+## Validation Commands
 
-Truoc khi commit, kiem tra:
-
-- Boundary co `name` ro rang va unique.
-- Boundary co `dataTestId` de automation tim duoc.
-- Khong dua modal/toast vao nested boundary neu khong can.
-- UI desktop/mobile van dung layout.
-- `npm.cmd run typecheck` pass.
-- `npm.cmd run build` pass.
-
-## Command Validate
-
-Tren Windows PowerShell, neu `npm` bi chan do execution policy, dung `npm.cmd`:
+On Windows, prefer `npm.cmd` if PowerShell execution policy blocks `npm`:
 
 ```powershell
 npm.cmd run typecheck
 npm.cmd run build
 ```
-
-## Pattern Khuyen Dung
-
-Tao boundary o cap module/page, khong tao qua day dac:
-
-```tsx
-export function NewCrmModule() {
-  return (
-    <ShadowBoundary name="crm-new-module" level={3} dataTestId="shadow-crm-new-module">
-      <section className="page-stack" data-testid="page-new-module">
-        <ObjectHeader title="New Module" subtitle="A maintainable CRM module." />
-        <div className="list-card">...</div>
-      </section>
-    </ShadowBoundary>
-  );
-}
-```
-
-Nguyen tac chinh: **Shadow DOM dung de tao boundary lon, ro rang, de maintain; khong dung cho moi element nho.**

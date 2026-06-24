@@ -163,8 +163,48 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .app-navigation a.active { color: var(--primary-deep); background: #fff; box-shadow: inset 0 0 0 1px var(--line), var(--small-shadow); }
 
 .main-content { width: min(1440px, 100%); margin: 0 auto; padding: 28px 24px 88px; }
+.workspace-surface { position: relative; min-height: 220px; }
 .page-stack { display: grid; gap: 22px; animation: rise 420ms ease both; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: inherit;
+  font-weight: 900;
+}
+.loading-indicator-sm { gap: 8px; font-size: 0.86rem; }
+.loading-indicator-lg { display: grid; justify-items: center; gap: 16px; font-family: var(--font-display); font-size: clamp(1.5rem, 4vw, 2.35rem); color: var(--primary-deep); }
+.loading-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(1, 118, 211, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 720ms linear infinite;
+}
+.loading-indicator-sm .loading-spinner { width: 16px; height: 16px; border-width: 2px; }
+.loading-indicator-lg .loading-spinner { width: 52px; height: 52px; border-width: 5px; box-shadow: 0 0 0 10px rgba(1, 118, 211, 0.08); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.workspace-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border-radius: 28px;
+  background: rgba(244, 252, 255, 0.62);
+  backdrop-filter: blur(6px);
+}
+.route-loading {
+  display: grid;
+  place-items: center;
+  min-height: 58vh;
+  padding: 32px;
+}
 
 .hero-panel, .object-header, .record-header, .list-card, .detail-card, .activity-panel, .related-card, .report-card, .login-card {
   border: 1px solid rgba(203, 215, 229, 0.95);
@@ -460,4 +500,8 @@ dd { margin: 0; font-weight: 900; overflow-wrap: anywhere; }
   .quick-actions, .object-actions, .record-actions { justify-content: flex-start; }
   dl div { grid-template-columns: 1fr; gap: 4px; }
   .bar-row { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner { animation-duration: 1.8s; }
 }
